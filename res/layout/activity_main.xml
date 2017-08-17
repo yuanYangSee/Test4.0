@@ -40,14 +40,24 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/ReturnData"
         android:layout_toRightOf="@+id/btn_get_max_lnu"
-        android:text="command" />
+        android:text="握手" />
 
     <Button
-        android:id="@+id/OpenDevice"
+        android:id="@+id/button_down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/btn_reset"
         android:layout_below="@+id/btn_reset"
-        android:text="OpenDevice" />
+        android:layout_marginTop="25dp"
+        android:text="DataDown" />
 
+    <Button
+        android:id="@+id/button_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/button_down"
+        android:layout_alignBottom="@+id/button_down"
+        android:layout_alignRight="@+id/btn_send_command"
+        android:text="DataUp" />
+    
 </RelativeLayout>

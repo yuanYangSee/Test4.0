@@ -191,7 +191,8 @@ public class MainActivity extends Activity implements OnClickListener
             getMaxLnu();  
             break;  
         case R.id.btn_send_command :  
-            sendCommand();  
+       //     sendCommand();  
+        	Command_Down(19);
             break;  
         default :  
             break;  
@@ -296,6 +297,61 @@ public class MainActivity extends Activity implements OnClickListener
 	    str += "\n";  
 	    mTvInfo.setText(str);  
 	}  
+	
+	private void Command_Down(int j) {  
+	    String str = mTvInfo.getText().toString();  
+	      
+	    byte[] cmd = new byte[] {  
+	        (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3 
+	        (byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 自定义,与返回的CSW中的值是一样的  4~7
+	  //      (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  
+	          (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  8~11
+	        (byte) 0x00, //  (12th/out)
+	        (byte) 0x00, // LNU为0,则设为0  
+	        (byte) 0x02, // 命令长度为1  command length
+	        (byte) j, (byte) 0x00, (byte) 0x00, (byte) 0x00, // READ FORMAT CAPACITIES,后面的0x00皆被忽略  
+	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
+	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
+	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00  
+	    };  
+	    int result = mConnection.bulkTransfer(mEndpointOut, cmd, cmd.length, 1000);  
+	    if(result < 0) {  
+	        Log.d(TAG,  "Send command failed!");  
+	        str += "Send command failed!\n";  
+	    } else {  
+	        Log.d(TAG, "Send command succeeded!");  
+	        str += "Send command succeeded!\n";  
+	    }  
+	      
+	/*    byte[] message = new byte[10];      //  需要足够的长度接收数据  
+	    result = mConnection.bulkTransfer(mEndpointIn, message, message.length, 1000);  
+	    if(result < 0) {  
+	        Log.d(TAG,  "Receive message failed!");  
+	        str += "Receive message failed!\n";  
+	    } else {  
+	        Log.d(TAG, "Receive message succeeded!");  
+	        str += "Receive message succeeded!\nFormat capacities : \n";  
+	        for(int i=0; i<message.length; i++) {  
+	            str += Integer.toHexString(message[i]&0x00FF) + " ";  
+	        }                 
+	    }  */
+	      
+	    byte[] csw = new byte[13];  
+	    result = mConnection.bulkTransfer(mEndpointIn, csw, csw.length, 1000);  
+	    if(result < 0) {  
+	        Log.d(TAG,  "Receive CSW failed!");  
+	        str += "\nReceive CSW failed!";  
+	    } else {  
+	        Log.d(TAG, "Receive CSW succeeded!");  
+	        str += "\nReceive CSW succeeded!\nReceived CSW : ";  
+	        for(int i=0; i<csw.length; i++) {  
+	            str += Integer.toHexString(csw[i]&0x00FF) + " ";  
+	        }                 
+	    }  
+	    str += "\n";  
+	    mTvInfo.setText(str);  
+	}  
+
 
 	
 
