@@ -200,8 +200,8 @@ public class MainActivity extends Activity implements OnClickListener
             break;  
         case R.id.btn_send_command :  
        //     sendCommand();  
-       // 	Command_Down(19);
-        	Command_Up();
+        	Command_Down(19);
+        	
             break;  
         case R.id.button_down:
         	Command_Down(19);
@@ -335,21 +335,8 @@ public class MainActivity extends Activity implements OnClickListener
 	        str += "Send command failed!\n";  
 	    } else {  
 	        Log.d(TAG, "Send command succeeded!");  
-	        str += "Send command succeeded!\n";  
+	        str += "Send DOWN command succeeded!\n";  
 	    }  
-	      
-	/*    byte[] message = new byte[10];      //  需要足够的长度接收数据  
-	    result = mConnection.bulkTransfer(mEndpointIn, message, message.length, 1000);  
-	    if(result < 0) {  
-	        Log.d(TAG,  "Receive message failed!");  
-	        str += "Receive message failed!\n";  
-	    } else {  
-	        Log.d(TAG, "Receive message succeeded!");  
-	        str += "Receive message succeeded!\nFormat capacities : \n";  
-	        for(int i=0; i<message.length; i++) {  
-	            str += Integer.toHexString(message[i]&0x00FF) + " ";  
-	        }                 
-	    }  */
 	      
 	    byte[] csw = new byte[13];  
 	    result = mConnection.bulkTransfer(mEndpointIn, csw, csw.length, 1000);  
@@ -388,11 +375,11 @@ public class MainActivity extends Activity implements OnClickListener
 	        Log.d(TAG,  "Send command failed!");  
 	        str += "Send command failed!\n";  
 	    } else {  
-	        Log.d(TAG, "Send command succeeded!");  
+	        Log.d(TAG, "Send UP command succeeded!");  
 	        str += "\nSend command succeeded!\n";  
 	    }  
 	      
-	    byte[] message = new byte[36];      //  需要足够的长度接收数据  
+	    byte[] message = new byte[50];      //  需要足够的长度接收数据  
 	    result = mConnection.bulkTransfer(mEndpointIn, message, message.length, 1000);  
 	    if(result < 0) {  
 	        Log.d(TAG,  "Receive message failed!");  
