@@ -15,6 +15,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -58,6 +59,7 @@ public class MainActivity extends Activity implements OnClickListener
 	     mButtonUp=(Button)findViewById(R.id.button_up);
 	     
 	        mTvInfo = (TextView)findViewById(R.id.ReturnData);  
+	        mTvInfo.setMovementMethod(ScrollingMovementMethod.getInstance());
 	          
 	        mBtnReset.setOnClickListener(this);  
 	        mBtnGetMaxLnu.setOnClickListener(this);  
