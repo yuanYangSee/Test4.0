@@ -207,6 +207,7 @@ public class MainActivity extends Activity implements OnClickListener
         	Command_Down(19);
         	break;
         case R.id.button_up:
+        	Command_Up();
         		break;
         default :  
             break;  
@@ -357,7 +358,7 @@ public class MainActivity extends Activity implements OnClickListener
 	        str += "\nReceive CSW failed!";  
 	    } else {  
 	        Log.d(TAG, "Receive CSW succeeded!");  
-	        str += "\nReceive CSW succeeded!\nReceived CSW : ";  
+	        str += "Receive CSW succeeded!\nReceived CSW : ";  
 	        for(int i=0; i<csw.length; i++) {  
 	            str += Integer.toHexString(csw[i]&0x00FF) + " ";  
 	        }                 
@@ -388,7 +389,7 @@ public class MainActivity extends Activity implements OnClickListener
 	        str += "Send command failed!\n";  
 	    } else {  
 	        Log.d(TAG, "Send command succeeded!");  
-	        str += "Send command succeeded!\n";  
+	        str += "\nSend command succeeded!\n";  
 	    }  
 	      
 	    byte[] message = new byte[36];      //  需要足够的长度接收数据  
