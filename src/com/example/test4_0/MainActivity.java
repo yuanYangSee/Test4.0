@@ -42,8 +42,11 @@ public class MainActivity extends Activity implements OnClickListener
     private UsbEndpoint mEndpointOut;  
     private UsbDeviceConnection mConnection = null;  
       
-    private final int mVendorID = 0x2109;  
-    private final int mProductID = 0x7638;  
+//    private final int mVendorID = 0x2109;  //190
+ //   private final int mProductID = 0x7638;  
+    
+    	private final int mVendorID = 1155;  //big
+    	private final int mProductID = 22304;  
       
     private boolean mDetachedRegistered = false;  
 
@@ -70,6 +73,18 @@ public class MainActivity extends Activity implements OnClickListener
 	        mUsbManager = (UsbManager)getSystemService(Context.USB_SERVICE);  
 	}
 	
+	//加载界面
+	private void setViewContent()
+	{
+		
+		
+		
+	}
+	
+	
+	
+	
+	
 	   private IntentFilter usbDetachedFilter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED);  
 	   //弹出设备时关闭程序
 	   private BroadcastReceiver usbDetachedReceiver = new BroadcastReceiver() {  
@@ -80,8 +95,7 @@ public class MainActivity extends Activity implements OnClickListener
 	            // 确保弹出的设备为指定的  设备ID
 	            if(mVendorID == device.getVendorId() && mProductID == device.getProductId()) {  
 	                mUsbDevice = null;  
-	                finish();  
-	            }  
+	                finish(); }  
 	        }  
 	    }  
 	   };  
@@ -361,12 +375,12 @@ public class MainActivity extends Activity implements OnClickListener
 	        (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3 
 	        (byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 自定义,与返回的CSW中的值是一样的  4~7
 	  //      (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  
-	          (byte) 0x24, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  8~11
+	          (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  8~11
 	        (byte) 0x80, //  (12th/in)
 	        (byte) 0x00, // LNU为0,则设为0  
-	        (byte) 0x02, // 命令长度为1  command length
-	        (byte)0x12, (byte) 0x00, (byte) 0x00, (byte) 0x00, // READ FORMAT CAPACITIES,后面的0x00皆被忽略  
-	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
+	        (byte) 0x06, // 命令长度为1  command length
+	        (byte)0xFF, (byte) 0x00, (byte) 0x00, (byte) 0x00, // READ FORMAT CAPACITIES,后面的0x00皆被忽略  
+	        (byte) 0x24, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
 	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
 	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00  
 	    };  
@@ -376,10 +390,10 @@ public class MainActivity extends Activity implements OnClickListener
 	        str += "Send command failed!\n";  
 	    } else {  
 	        Log.d(TAG, "Send UP command succeeded!");  
-	        str += "\nSend command succeeded!\n";  
+	        str += "\nSend Up command succeeded!\n";  
 	    }  
 	      
-	    byte[] message = new byte[50];      //  需要足够的长度接收数据  
+	    byte[] message = new byte[256];      //  需要足够的长度接收数据  
 	    result = mConnection.bulkTransfer(mEndpointIn, message, message.length, 1000);  
 	    if(result < 0) {  
 	        Log.d(TAG,  "Receive message failed!");  
