@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements OnClickListener
       
     private Button mBtnReset;  
     private Button mBtnGetMaxLnu;  
-    private Button mBtnSendCommand;  
+    private Button mBtnOpenDevice;  
     private Button mButtonDown;
     private Button mButtonUp;
     private TextView mTvInfo;  
@@ -41,6 +41,8 @@ public class MainActivity extends Activity implements OnClickListener
     private UsbEndpoint mEndpointIn;  
     private UsbEndpoint mEndpointOut;  
     private UsbDeviceConnection mConnection = null;  
+    
+    private boolean mSensorInited =false;
       
 //    private final int mVendorID = 0x2109;  //190
  //   private final int mProductID = 0x7638;  
@@ -56,6 +58,7 @@ public class MainActivity extends Activity implements OnClickListener
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		setViewContent(); 
+		registerUSBpermisson(this.getApplicationContext()); /*注册监听USB*/
 	}
 	
 	//加载界面
@@ -63,7 +66,7 @@ public class MainActivity extends Activity implements OnClickListener
 	{
 		 mBtnReset = (Button)findViewById(R.id.btn_reset);  
 	     mBtnGetMaxLnu = (Button)findViewById(R.id.btn_get_max_lnu);  
-	     mBtnSendCommand = (Button)findViewById(R.id.btn_send_command); 
+	     mBtnOpenDevice = (Button)findViewById(R.id.OpenDevice); 
 	     mButtonDown=(Button)findViewById(R.id.button_down);
 	     mButtonUp=(Button)findViewById(R.id.button_up);
 	     
@@ -72,72 +75,59 @@ public class MainActivity extends Activity implements OnClickListener
 	          
 	     mBtnReset.setOnClickListener(this);  
 	     mBtnGetMaxLnu.setOnClickListener(this);  
-	     mBtnSendCommand.setOnClickListener(this);  
+	     mBtnOpenDevice.setOnClickListener(this);  
 	     mButtonDown.setOnClickListener(this);
 	     mButtonUp.setOnClickListener(this);
 	          
 	     mUsbManager = (UsbManager)getSystemService(Context.USB_SERVICE);  
 	}
 	
+	public void registerUSBpermisson(Context context) /*注册监听USB*/
+	{
+		  IntentFilter filter = new IntentFilter();
+		  filter.addAction(ACTION_USB_PERMISSION);
+          filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);//拔出USB
+          context.registerReceiver(mUsbReceiverPermission, filter);
+	}
 	
-	
-	
-	
-	   private IntentFilter usbDetachedFilter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED);  
-	   //弹出设备时关闭程序
-	   private BroadcastReceiver usbDetachedReceiver = new BroadcastReceiver() {  
-	    @Override  
-	    public void onReceive(Context context, Intent intent) {  
-	        UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);  
-	        if(device != null) {  
-	            // 确保弹出的设备为指定的  设备ID
-	            if(mVendorID == device.getVendorId() && mProductID == device.getProductId()) {  
-	                mUsbDevice = null;  
-	                finish(); }  
-	        }  
-	    }  
-	   };  
+	 private final BroadcastReceiver mUsbReceiverPermission = new BroadcastReceiver()
+	 {
+		@Override
+		public void onReceive(Context arg0, Intent intent)
+		{
+			// TODO Auto-generated method stub
+			 // 获取启动Activity的USB设备  
+		    String action = intent.getAction();   
+		    if (ACTION_USB_PERMISSION.equals(action))
+		    {
+		    	//申请USB权限
+		    	synchronized (this){
+                    UsbDevice usbDevice = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);   
+		    	
+		    	if (usbDevice != null && intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
+                {
+                      //用户同意 ;
+                      mSensorInited = true;
+                }
+                 else//用户拒绝
+                {
+                      mSensorInited = false;
+                      Log.e(TAG, "用户拒绝授权.");
+                }
+		    	}
+		    }
+		    else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action))
+            {
+                 mSensorInited = false;
+                 							//关闭设备，释放资源
+                 Toast.makeText(MainActivity.this, "USB采集设备已拔出。", Toast.LENGTH_SHORT);
+            }
 
-	//找到相应的设备并建立连接
-	protected void onResume() {  
-	    super.onResume();  
-	    // 获取启动Activity的USB设备  
-	    Intent intent = getIntent();  
-	    String action = intent.getAction();                   
-	    mUsbDevice = null;  
-	    if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {  
-	        mUsbDevice = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);  
-	        if(mVendorID != mUsbDevice.getVendorId() || mProductID != mUsbDevice.getProductId()) {  
-	        	Log.d(TAG, "ID核验不正确");
-	            mUsbDevice = null;  
-	        }  
-	    }   
-	      
-	    if(mUsbDevice == null) {  
-	        refreshDevice();  
-	       }  
-	      
-	    if(mUsbDevice == null) {    // 插入设备自动启动应用程序,自动获取获取permission  
-	        Log.d(TAG, "Please insert USB flash disk!");            // 手机请使用Toast  
-	        Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();  
-	        finish();  
-	        return;  
-	    }   
-	      
-	    // 判断是否拥有权限  
-	    if(!mUsbManager.hasPermission(mUsbDevice)) {  
-	        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);  
-	 //       IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);  
-	 //     registerReceiver(mPermissionReceiver, filter);  
-	        mUsbManager.requestPermission(mUsbDevice, permissionIntent);              
-	       } else {  
-	        Log.d(TAG, "Correct device!");  
-	           Toast.makeText(MainActivity.this, "Correct device!", Toast.LENGTH_SHORT).show();           
-	        makeConnection();  
-	       }  	                      
-	    registerReceiver(usbDetachedReceiver, usbDetachedFilter);   // 注册弹出通知       
-	    mDetachedRegistered = true;  
-	}  
+		    
+		}
+	 };
+	
+	 
 	
 	//获取设备
 	private void refreshDevice() {  
@@ -210,10 +200,14 @@ public class MainActivity extends Activity implements OnClickListener
         case R.id.btn_get_max_lnu :  
             getMaxLnu();  
             break;  
-        case R.id.btn_send_command :  
-       //     sendCommand();  
-        	Command_Down(19);
-        	
+        case R.id.OpenDevice :  
+        	mSensorInited = InitUsbDevice(mVendorID,mProductID);
+        	if(mSensorInited==true)
+        	{
+        		String str = mTvInfo.getText().toString();
+        		str+="打开成功。\n";
+        		mTvInfo.setText(str);
+        	}
             break;  
         case R.id.button_down:
         	Command_Down(19);
@@ -221,9 +215,54 @@ public class MainActivity extends Activity implements OnClickListener
         case R.id.button_up:
         	Command_Up();
         		break;
+        
         default :  
-            break;  
-							}  
+            break;	} 
+	}
+	
+	private boolean InitUsbDevice (int vid, int pid)
+	{
+		boolean isSucceed = false;
+		
+		 Intent intent = getIntent();  
+		 String action = intent.getAction();                   
+		 mUsbDevice = null;  
+		 if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) 
+		 	{  
+		        mUsbDevice = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);  
+		        if(vid != mUsbDevice.getVendorId() || pid != mUsbDevice.getProductId()) {  
+		        	Log.d(TAG, "ID核验不正确");
+		            mUsbDevice = null;  
+		            return false;
+		        }
+		        
+		        if(mUsbDevice == null) {  
+			        refreshDevice();  
+			       }
+		        
+		        if(mUsbDevice == null) {    // 插入设备自动启动应用程序,自动获取获取permission  
+			        Log.d(TAG, "Please insert USB flash disk!");            // 手机请使用Toast  
+			        Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();  
+			        return false;
+		        }
+		        //验证权限
+		        // 判断是否拥有权限  
+			    if(!mUsbManager.hasPermission(mUsbDevice)) {  
+			        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);  
+			        mUsbManager.requestPermission(mUsbDevice, permissionIntent);   
+			        try {
+                        Thread.sleep(5000);//延时5s，等待用户选择
+                   } catch (InterruptedException e) {
+                        e.printStackTrace();}
+			    }
+			    else {  
+			        Log.d(TAG, "Correct device!");  
+			           Toast.makeText(MainActivity.this, "Correct device!", Toast.LENGTH_SHORT).show();           
+			        makeConnection();  
+		    }
+			    isSucceed=true;
+		 	}
+		 return isSucceed;
 	}
 	
 	private void reset() 
