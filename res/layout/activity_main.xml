@@ -21,33 +21,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
-        android:layout_alignLeft="@+id/btn_reset"
         android:layout_below="@+id/btn_reset"
-        android:layout_marginLeft="14dp"
         android:layout_marginTop="132dp"
         android:text="ReturnData:" />
-
-    <Button
-        android:id="@+id/btn_get_max_lnu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/ReturnData"
-        android:layout_toRightOf="@+id/btn_reset"
-        android:text="GetMaxLnu" />
-
-    <Button
-        android:id="@+id/OpenDevice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/ReturnData"
-        android:layout_toRightOf="@+id/btn_get_max_lnu"
-        android:text="Init" />
 
     <Button
         android:id="@+id/button_down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/btn_reset"
         android:layout_below="@+id/btn_reset"
         android:layout_marginTop="25dp"
         android:text="DataDown" />
@@ -60,5 +41,22 @@
         android:layout_alignBottom="@+id/button_down"
         android:layout_toRightOf="@+id/button_down"
         android:text="DataUp" />
+
+    <Button
+        android:id="@+id/OpenDevice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btn_reset"
+        android:layout_alignBottom="@+id/btn_reset"
+        android:layout_toRightOf="@+id/btn_reset"
+        android:text="Init" />
+
+    <Button
+        android:id="@+id/btn_get_max_lnu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ReturnData"
+        android:layout_toRightOf="@+id/OpenDevice"
+        android:text="GetMaxLnu" />
     
 </RelativeLayout>

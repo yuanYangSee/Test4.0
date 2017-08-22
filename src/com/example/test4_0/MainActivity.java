@@ -40,17 +40,17 @@ public class MainActivity extends Activity implements OnClickListener
     private UsbDevice mUsbDevice;  
     private UsbEndpoint mEndpointIn;  
     private UsbEndpoint mEndpointOut;  
-    private UsbDeviceConnection mConnection = null;  
+    private UsbDeviceConnection mConnection = null; 
+    private PendingIntent mPermissionIntent;
     
     private boolean mSensorInited =false;
       
-//    private final int mVendorID = 0x2109;  //190
- //   private final int mProductID = 0x7638;  
+    private final int mVendorID = 0x2109;  //190
+    private final int mProductID = 0x7638;  
     
-    	private final int mVendorID = 8210;  //big
-    	private final int mProductID = 8209;  
+   /* 	private final int mVendorID = 8210;  //big
+    	private final int mProductID = 8209;  */
       
-    private boolean mDetachedRegistered = false;  
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -62,228 +62,79 @@ public class MainActivity extends Activity implements OnClickListener
 	}
 	
 	//加载界面
-	private void setViewContent()
-	{
-		 mBtnReset = (Button)findViewById(R.id.btn_reset);  
-	     mBtnGetMaxLnu = (Button)findViewById(R.id.btn_get_max_lnu);  
-	     mBtnOpenDevice = (Button)findViewById(R.id.OpenDevice); 
-	     mButtonDown=(Button)findViewById(R.id.button_down);
-	     mButtonUp=(Button)findViewById(R.id.button_up);
-	     
-	     mTvInfo = (TextView)findViewById(R.id.ReturnData);  
-	     mTvInfo.setMovementMethod(ScrollingMovementMethod.getInstance());
-	          
-	     mBtnReset.setOnClickListener(this);  
-	     mBtnGetMaxLnu.setOnClickListener(this);  
-	     mBtnOpenDevice.setOnClickListener(this);  
-	     mButtonDown.setOnClickListener(this);
-	     mButtonUp.setOnClickListener(this);
-	          
-	     mUsbManager = (UsbManager)getSystemService(Context.USB_SERVICE);  
-	}
-	
-	public void registerUSBpermisson(Context context) /*注册监听USB*/
-	{
-		  IntentFilter filter = new IntentFilter();
-		  filter.addAction(ACTION_USB_PERMISSION);
-          filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);//拔出USB
-          context.registerReceiver(mUsbReceiverPermission, filter);
-	}
-	
-	 private final BroadcastReceiver mUsbReceiverPermission = new BroadcastReceiver()
-	 {
-		@Override
-		public void onReceive(Context arg0, Intent intent)
+		private void setViewContent()
 		{
-			// TODO Auto-generated method stub
-			 // 获取启动Activity的USB设备  
-		    String action = intent.getAction();   
-		    if (ACTION_USB_PERMISSION.equals(action))
-		    {
-		    	//申请USB权限
-		    	synchronized (this){
-                    UsbDevice usbDevice = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);   
-		    	
-		    	if (usbDevice != null && intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
-                {
-                      //用户同意 ;
-                      mSensorInited = true;
-                }
-                 else//用户拒绝
-                {
-                      mSensorInited = false;
-                      Log.e(TAG, "用户拒绝授权.");
-                }
-		    	}
-		    }
-		    else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action))
-            {
-                 mSensorInited = false;
-                 							//关闭设备，释放资源
-                 Toast.makeText(MainActivity.this, "USB采集设备已拔出。", Toast.LENGTH_SHORT);
-            }
-
-		    
+			 mBtnReset = (Button)findViewById(R.id.btn_reset);  
+		     mBtnGetMaxLnu = (Button)findViewById(R.id.btn_get_max_lnu);  
+		     mBtnOpenDevice = (Button)findViewById(R.id.OpenDevice); 
+		     mButtonDown=(Button)findViewById(R.id.button_down);
+		     mButtonUp=(Button)findViewById(R.id.button_up);
+		     
+		     mTvInfo = (TextView)findViewById(R.id.ReturnData);  
+		     mTvInfo.setMovementMethod(ScrollingMovementMethod.getInstance());
+		          
+		     mBtnReset.setOnClickListener(this);  
+		     mBtnGetMaxLnu.setOnClickListener(this);  
+		     mBtnOpenDevice.setOnClickListener(this);  
+		     mButtonDown.setOnClickListener(this);
+		     mButtonUp.setOnClickListener(this);
+		          
+		     mUsbManager = (UsbManager)getSystemService(Context.USB_SERVICE);  
 		}
-	 };
-	
-	 
-	
-	//获取设备
-	private void refreshDevice() {  
-	    HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();  
-	    Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();  
-	    while(deviceIterator.hasNext()){  
-	        mUsbDevice = deviceIterator.next();  
-	        if(mVendorID == mUsbDevice.getVendorId() && mProductID == mUsbDevice.getProductId()) {  
-	            break;  
-	        } else {  
-	            mUsbDevice = null;  
-	        }  
-	    }     
-	}  
-	
-	//建立连接
-	private void makeConnection() {  
-	    if(mUsbDevice == null) {  
-	        Log.d(TAG, "Please insert USB flash disk!");  
-	        Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();  
-	        finish();  
-	        return;  
-	    }  
-	    // U盘接口个数为1  
-	    if(mUsbDevice.getInterfaceCount() != 1) {  
-	        Log.d(TAG, "Not a USB flash disk!");  
-	        Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();  
-	        finish();  
-	        return;  
-	    }  
-	      
-	    UsbInterface intf = mUsbDevice.getInterface(0);  
-	      
-	    // U盘接口0可获取的端点数为2  
-	    if(intf.getEndpointCount() != 2) {  
-	        Log.d(TAG, "Not a USB flash disk!");  
-	        Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();  
-	        finish();  
-	        return;  
-	    } else {  
-	        mEndpointIn = intf.getEndpoint(0);   // Bulk-In端点  
-	        mEndpointOut = intf.getEndpoint(1);  // Bulk_Out端点  
-	        Log.d(TAG, "设备非空，获取到In以及OUT端点。");
-	    }  
-	                      
-	    if (mUsbDevice != null) {  
-	           UsbDeviceConnection connection = mUsbManager.openDevice(mUsbDevice);  
-	           if (connection != null && connection.claimInterface(intf, true)) {  
-	            Log.d(TAG, "连接非空，Make connection succeeded!");  
-	            Toast.makeText(this, "Make connection succeeded!", Toast.LENGTH_SHORT).show();  
-	               mConnection = connection;  
-	           } else {  
-	            Log.d(TAG, "Make connection failed!");  
-	            Toast.makeText(this, "Make connection failed!", Toast.LENGTH_SHORT).show();  
-	               mConnection = null;  
-	               finish();  
-	           }  
-	        }  
-	}  
-	
-	
-	@Override
-	public void onClick(View v)
-	{
-		// TODO Auto-generated method stub
-		switch(v.getId()) 	{  
-        case R.id.btn_reset :  
-            reset();  
-            break;  
-        case R.id.btn_get_max_lnu :  
-            getMaxLnu();  
-            break;  
-        case R.id.OpenDevice :  
-        	mSensorInited = InitUsbDevice(mVendorID,mProductID);
-        	if(mSensorInited==true)
-        	{
-        		String str = mTvInfo.getText().toString();
-        		str+="打开成功。\n";
-        		mTvInfo.setText(str);
-        	}
-            break;  
-        case R.id.button_down:
-        	Command_Down(19);
-        	break;
-        case R.id.button_up:
-        	Command_Up();
-        		break;
-        
-        default :  
-            break;	} 
-	}
-	
-	private boolean InitUsbDevice (int vid, int pid)
-	{
-		boolean isSucceed = false;
 		
-		 Intent intent = getIntent();  
-		 String action = intent.getAction();                   
-		 mUsbDevice = null;  
-		 if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) 
-		 	{  
-		        mUsbDevice = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);  
-		        if(vid != mUsbDevice.getVendorId() || pid != mUsbDevice.getProductId()) {  
-		        	Log.d(TAG, "ID核验不正确");
-		            mUsbDevice = null;  
-		            return false;
-		        }
-		        
-		        if(mUsbDevice == null) {  
-			        refreshDevice();  
-			       }
-		        
-		        if(mUsbDevice == null) {    // 插入设备自动启动应用程序,自动获取获取permission  
-			        Log.d(TAG, "Please insert USB flash disk!");            // 手机请使用Toast  
-			        Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();  
-			        return false;
-		        }
-		        //验证权限
-		        // 判断是否拥有权限  
-			    if(!mUsbManager.hasPermission(mUsbDevice)) {  
-			        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);  
-			        mUsbManager.requestPermission(mUsbDevice, permissionIntent);   
-			        try {
-                        Thread.sleep(5000);//延时5s，等待用户选择
-                   } catch (InterruptedException e) {
-                        e.printStackTrace();}
-			    }
-			    else {  
-			        Log.d(TAG, "Correct device!");  
-			           Toast.makeText(MainActivity.this, "Correct device!", Toast.LENGTH_SHORT).show();           
-			        makeConnection();  
-		    }
-			    isSucceed=true;
-		 	}
-		 return isSucceed;
-	}
+		//	注册监听USB
+		public void registerUSBpermisson(Context context) 
+		{
+			  mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+			  IntentFilter filter = new IntentFilter();
+			  filter.addAction(ACTION_USB_PERMISSION);
+	          filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);//拔出USB
+	          context.registerReceiver(mUsbReceiverPermission, filter);
+		}
+		
+		// 广播
+		private final BroadcastReceiver mUsbReceiverPermission = new BroadcastReceiver()
+		{
+			@Override
+			public void onReceive(Context arg0, Intent intent)
+			{
+				// TODO Auto-generated method stub
+				// 获取启动Activity的USB设备
+				String action = intent.getAction();
+				if (ACTION_USB_PERMISSION.equals(action))
+				{
+					// 申请USB权限
+					synchronized (this)
+					{
+						UsbDevice usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+						if (usbDevice != null && intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
+						{
+							// 用户同意 ;
+							mSensorInited = true;
+						} else// 用户拒绝
+						{
+							mSensorInited = false;
+							Log.e(TAG, "用户拒绝授权.");
+						}
+					}
+				} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action))
+				{
+					mSensorInited = false;
+					// 关闭设备，释放资源
+					CloseConnection(mUsbDevice);
+					Toast.makeText(MainActivity.this, "USB采集设备已拔出。", Toast.LENGTH_SHORT).show();
+				}
+			}
+		};
 	
-	private void reset() 
-	{  
-	    synchronized (this) {  
-	           if (mConnection != null) {  
-	            String str = mTvInfo.getText().toString();  
-	              
-	            // 复位命令的设置有USB Mass Storage的定义文档给出  
-	            int result = mConnection.controlTransfer(0x21, 0xFF, 0x00, 0x00, null, 0, 1000);  
-	               if(result < 0) {                      // result<0说明发送失败  
-	                Log.d(TAG, "Send reset command failed!");  
-	                str += "Send reset command failed!\n";  
-	            } else {   
-	                Log.d(TAG, "Send reset command succeeded!");  
-	                str += "Send reset command succeeded!\n";  
-	            }         
-	               mTvInfo.setText(str);  
-	           }  
-	       }  
-	}
+	/*
+	
+	
+	
+	
+	
+	
 	
 	private void getMaxLnu() {  
 	    synchronized (this) {  
@@ -335,7 +186,7 @@ public class MainActivity extends Activity implements OnClickListener
 	        str += "Send command succeeded!\n";  
 	    }  
 	      
-	/*    byte[] message = new byte[10];      //  需要足够的长度接收数据  
+	    byte[] message = new byte[10];      //  需要足够的长度接收数据  
 	    result = mConnection.bulkTransfer(mEndpointIn, message, message.length, 1000);  
 	    if(result < 0) {  
 	        Log.d(TAG,  "Receive message failed!");  
@@ -346,7 +197,7 @@ public class MainActivity extends Activity implements OnClickListener
 	        for(int i=0; i<message.length; i++) {  
 	            str += Integer.toHexString(message[i]&0x00FF) + " ";  
 	        }                 
-	    }  */
+	    }  
 	      
 	    byte[] csw = new byte[13];  
 	    result = mConnection.bulkTransfer(mEndpointIn, csw, csw.length, 1000);  
@@ -364,46 +215,7 @@ public class MainActivity extends Activity implements OnClickListener
 	    mTvInfo.setText(str);  
 	}  
 	
-	private void Command_Down(int j) {  
-	    String str = mTvInfo.getText().toString();  
-	      
-	    byte[] cmd = new byte[] {  
-	        (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3 
-	        (byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 自定义,与返回的CSW中的值是一样的  4~7
-	  //      (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  
-	          (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节  8~11
-	        (byte) 0x00, //  (12th/out)
-	        (byte) 0x00, // LNU为0,则设为0  
-	        (byte) 0x02, // 命令长度为1  command length
-	        (byte) j, (byte) 0x00, (byte) 0x00, (byte) 0x00, // READ FORMAT CAPACITIES,后面的0x00皆被忽略  
-	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
-	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,  
-	        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00  
-	    };  
-	    int result = mConnection.bulkTransfer(mEndpointOut, cmd, cmd.length, 1000);  
-	    if(result < 0) {  
-	        Log.d(TAG,  "Send command failed!");  
-	        str += "Send command failed!\n";  
-	    } else {  
-	        Log.d(TAG, "Send command succeeded!");  
-	        str += "Send DOWN command succeeded!\n";  
-	    }  
-	      
-	    byte[] csw = new byte[13];  
-	    result = mConnection.bulkTransfer(mEndpointIn, csw, csw.length, 1000);  
-	    if(result < 0) {  
-	        Log.d(TAG,  "Receive CSW failed!");  
-	        str += "\nReceive CSW failed!";  
-	    } else {  
-	        Log.d(TAG, "Receive CSW succeeded!");  
-	        str += "Receive CSW succeeded!\nReceived CSW : ";  
-	        for(int i=0; i<csw.length; i++) {  
-	            str += Integer.toHexString(csw[i]&0x00FF) + " ";  
-	        }                 
-	    }  
-	    str += "\n";  
-	    mTvInfo.setText(str);  
-	}  
+	
 
 	private void Command_Up() {  
 	    String str = mTvInfo.getText().toString();  
@@ -459,6 +271,252 @@ public class MainActivity extends Activity implements OnClickListener
 	    mTvInfo.setText(str);  
 	}  
 
-	
+	*/
+	@Override
+	public void onClick(View v)
+	{
+		// TODO Auto-generated method stub
+		switch (v.getId())
+		{
+		case R.id.OpenDevice:
+			Log.d(TAG, "R.id.OpenDevice");
+			mSensorInited = InitUsbDevice(mVendorID, mProductID);
+			if (mSensorInited == true)
+			{
+				String str2 = mTvInfo.getText().toString();
+				str2 += "打开成功。\n";
+				mTvInfo.setText(str2);
+			}
+			else 
+			{
+				Log.d(TAG, "mSensorInited=false.打开失败。");
+			}
+			break;
+		case R.id.btn_reset:
+			reset();
+			break;
+		case R.id.button_down:
+		    Command_Down(19);
+			break;
+		case R.id.btn_get_max_lnu:
+			// getMaxLnu();
+			String str1 = mTvInfo.getText().toString();
+			str1 += "get_max_lun。\n";
+			mTvInfo.setText(str1);
+			break;
+		case R.id.button_up:
+		//	Command_Up();
+			break;
 
+		default:
+			break;
+		}
+	}
+	
+	
+	
+	private boolean InitUsbDevice (int vid, int pid)
+	{
+		boolean isSucceed = false;
+		mUsbDevice = OpenDevice(this, vid, pid);
+		if(mUsbDevice==null)
+		{
+			return false;
+		}
+		mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
+		// 判断是否拥有权限
+		if (mUsbDevice!=null && !mUsbManager.hasPermission(mUsbDevice))
+		{
+			Log.d(TAG, "申请权限");
+			mUsbManager.requestPermission(mUsbDevice, mPermissionIntent);
+			try
+			{
+				Thread.sleep(5000);// 延时5s，等待用户选择
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		} else
+		{
+			isSucceed = true;
+			Log.d(TAG, "已有权限。初始化成功!");
+			Toast.makeText(MainActivity.this, "Correct device!", Toast.LENGTH_SHORT).show();
+		}
+		return isSucceed;
+	}
+	//打开设备。获取端点。建立连接。
+	UsbDevice OpenDevice(Context mContext, int VendorId, int ProductId)
+	{
+		UsbDevice mdevice = null;
+		Log.d("TAG", "getSystemService(Context.USB_SERVICE)");
+		mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		if (this.mUsbManager == null)
+		{
+			Log.d("TAG", "mUsbManager == null return!!!");
+			return null;
+		}
+		Log.d("AS60xDatas", "mUsbManager=" + this.mUsbManager);
+		HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
+		Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+		while (deviceIterator.hasNext())
+		{
+			UsbDevice device = null;
+			device = deviceIterator.next();
+			String devInfo = device.getDeviceName() + "(" + device.getVendorId() + ":" + device.getProductId() + ")";
+			Log.e("TAG", devInfo);
+			if (VendorId == device.getVendorId() && ProductId == device.getProductId())
+			{
+				mdevice=device;
+				Log.d("TAG", "mdevice found!");
+				break;
+			} 
+		}
+		boolean flag = makeConnection(mdevice);
+		if (!flag)
+	      {
+	        Log.d("TAG", "Sorry, GetUsbEndpoints failed!!!");
+	        return null;
+	      }
+	      Log.d("TAG", "GetUsbEndpoints Succeed!!!");
+	      Log.d(TAG, "OpenDevice成功。");
+		return mdevice;
+	}
+	
+	// 建立连接
+		public boolean makeConnection(UsbDevice device)
+		{
+			boolean isConnected=false;
+			if (device == null)
+			{
+				Log.d(TAG, "Please insert USB flash disk!");
+				Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();
+				return false;
+			}
+			// U盘接口个数为1
+			if (device.getInterfaceCount() != 1)
+			{
+				Log.d(TAG, "Not a USB flash disk!");
+				Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();
+				return false;
+			}
+
+			UsbInterface intf = device.getInterface(0);
+
+			// U盘接口0可获取的端点数为2
+			if (intf.getEndpointCount() != 2)
+			{
+				Log.d(TAG, "Not a USB flash disk!");
+				Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();
+				return false;
+			} else
+			{
+				mEndpointIn = intf.getEndpoint(0); // Bulk-In端点
+				mEndpointOut = intf.getEndpoint(1); // Bulk_Out端点
+				Log.d(TAG, "设备非空，获取到In以及OUT端点。");
+			}
+
+			if (device != null)
+			{
+				UsbDeviceConnection connection = mUsbManager.openDevice(device);
+				if (connection != null && connection.claimInterface(intf, true))
+				{
+					Log.d(TAG, "连接非空，Make connection succeeded!");
+					Toast.makeText(this, "Make connection succeeded!", Toast.LENGTH_SHORT).show();
+					mConnection = connection;
+					isConnected=true;
+				} else
+				{
+					Log.d(TAG, "Make connection failed!");
+					Toast.makeText(this, "Make connection failed!", Toast.LENGTH_SHORT).show();
+					mConnection = null;
+					return false;
+				}
+			}
+			return isConnected;
+		}
+
+	// 关闭连接，释放资源
+	void CloseConnection(UsbDevice device)
+	{
+		if ((this.mConnection != null) && (device != null))
+		{
+			this.mConnection.releaseInterface(device.getInterface(0));
+			this.mConnection.close();
+			this.mConnection = null;
+			Log.d(TAG, "关闭连接，释放资源");
+		}
+
+	}
+	
+	private void reset() 
+	{  
+	    synchronized (this) {  
+	           if (mConnection != null) {  
+	            String str = mTvInfo.getText().toString();  
+	              
+	            // 复位命令的设置有USB Mass Storage的定义文档给出  
+	            int result = mConnection.controlTransfer(0x21, 0xFF, 0x00, 0x00, null, 0, 1000);  
+	               if(result < 0) {                      // result<0说明发送失败  
+	                Log.d(TAG, "Send reset command failed!");  
+	                str += "Send reset command failed!\n";  
+	            } else {   
+	                Log.d(TAG, "Send reset command succeeded!");  
+	                str += "Send reset command succeeded!\n";  
+	            }         
+	               mTvInfo.setText(str);  
+	           }  
+	       }  
+	}
+	
+	private void Command_Down(int j)
+	{
+		String str = mTvInfo.getText().toString();
+
+		byte[] cmd = new byte[]
+		{ (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3
+				(byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 自定义,与返回的CSW中的值是一样的
+																	// 4~7
+				// (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x00, //
+				// 传输数据长度为512字节
+				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 传输数据长度为512字节
+																	// 8~11
+				(byte) 0x00, // (12th/out)
+				(byte) 0x00, // LNU为0,则设为0
+				(byte) 0x02, // 命令长度为1 command length
+				(byte) j, (byte) 0x00, (byte) 0x00, (byte) 0x00, // READ FORMAT
+																	// CAPACITIES,后面的0x00皆被忽略
+				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
+		int result = mConnection.bulkTransfer(mEndpointOut, cmd, cmd.length, 1000);
+		if (result < 0)
+		{
+			Log.d(TAG, "Send command failed!");
+			str += "Send command failed!\n";
+		} else
+		{
+			Log.d(TAG, "Send command succeeded!");
+			str += "Send DOWN command succeeded!\n";
+		}
+
+		byte[] csw = new byte[13];
+		result = mConnection.bulkTransfer(mEndpointIn, csw, csw.length, 1000);
+		if (result < 0)
+		{
+			Log.d(TAG, "Receive CSW failed!");
+			str += "\nReceive CSW failed!";
+		} else
+		{
+			Log.d(TAG, "Receive CSW succeeded!");
+			str += "Receive CSW succeeded!\nReceived CSW : ";
+			for (int i = 0; i < csw.length; i++)
+			{
+				str += Integer.toHexString(csw[i] & 0x00FF) + " ";
+			}
+		}
+		str += "\n";
+		mTvInfo.setText(str);
+	}
 }
+	
+	
