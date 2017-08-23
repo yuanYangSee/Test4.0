@@ -280,7 +280,7 @@ public class MainActivity extends Activity implements OnClickListener
 		{
 		case R.id.OpenDevice:
 			Log.d(TAG, "R.id.OpenDevice");
-			mSensorInited = InitUsbDevice(mVendorID, mProductID);
+			mSensorInited = InitUsbDevice(MainActivity.this,mVendorID, mProductID);
 			if (mSensorInited == true)
 			{
 				String str2 = mTvInfo.getText().toString();
@@ -315,10 +315,11 @@ public class MainActivity extends Activity implements OnClickListener
 	
 	
 	
-	private boolean InitUsbDevice (int vid, int pid)
+	private boolean InitUsbDevice (Context mContext,int vid, int pid)
 	{
 		boolean isSucceed = false;
-		mUsbDevice = OpenDevice(this, vid, pid);
+	//	mUsbDevice = OpenDevice(this, vid, pid);
+		mUsbDevice=DeviceIO.OpenDevice(mContext, vid, pid);
 		if(mUsbDevice==null)
 		{
 			return false;
@@ -345,45 +346,9 @@ public class MainActivity extends Activity implements OnClickListener
 		}
 		return isSucceed;
 	}
-	//打开设备。获取端点。建立连接。
-	UsbDevice OpenDevice(Context mContext, int VendorId, int ProductId)
-	{
-		UsbDevice mdevice = null;
-		Log.d("TAG", "getSystemService(Context.USB_SERVICE)");
-		mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-		if (this.mUsbManager == null)
-		{
-			Log.d("TAG", "mUsbManager == null return!!!");
-			return null;
-		}
-		Log.d("AS60xDatas", "mUsbManager=" + this.mUsbManager);
-		HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
-		Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-		while (deviceIterator.hasNext())
-		{
-			UsbDevice device = null;
-			device = deviceIterator.next();
-			String devInfo = device.getDeviceName() + "(" + device.getVendorId() + ":" + device.getProductId() + ")";
-			Log.e("TAG", devInfo);
-			if (VendorId == device.getVendorId() && ProductId == device.getProductId())
-			{
-				mdevice=device;
-				Log.d("TAG", "mdevice found!");
-				break;
-			} 
-		}
-		boolean flag = makeConnection(mdevice);
-		if (!flag)
-	      {
-	        Log.d("TAG", "Sorry, GetUsbEndpoints failed!!!");
-	        return null;
-	      }
-	      Log.d("TAG", "GetUsbEndpoints Succeed!!!");
-	      Log.d(TAG, "OpenDevice成功。");
-		return mdevice;
-	}
 	
-	// 建立连接
+	
+	/*// 建立连接
 		public boolean makeConnection(UsbDevice device)
 		{
 			boolean isConnected=false;
@@ -434,7 +399,7 @@ public class MainActivity extends Activity implements OnClickListener
 				}
 			}
 			return isConnected;
-		}
+		}*/
 
 	// 关闭连接，释放资源
 	void CloseConnection(UsbDevice device)
