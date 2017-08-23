@@ -24,6 +24,7 @@ public class DeviceDatas
 	// 关闭连接，释放资源
 	void CloseConnection(UsbDevice device)
 	{
+		Log.d(TAG, "CloseConnection");
 		if ((this.mConnection != null) && (device != null))
 		{
 			this.mConnection.releaseInterface(device.getInterface(0));
@@ -36,6 +37,7 @@ public class DeviceDatas
 
 	boolean CheckConnection(UsbDevice device)
 	{
+		Log.d(TAG, "CheckConnection");
 		boolean ret = false;
 		try
 		{
@@ -50,12 +52,15 @@ public class DeviceDatas
 				Log.d(TAG, "mConnection不为null");
 				this.mConnection.claimInterface(device.getInterface(0), false);
 				ret = true;
+				return ret;
 			}
+			
 		} catch (SecurityException e)
 		{
 			Log.e(TAG, "java.lang.SecurityException e: CheckConnection!!!");
 		}
-
+		ret=true;
+		Log.d(TAG, "mConnection不为null");
 		return ret;
 	}
 	

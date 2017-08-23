@@ -122,7 +122,7 @@ public class MainActivity extends Activity implements OnClickListener
 				{
 					mSensorInited = false;
 					// 关闭设备，释放资源
-					CloseConnection(mUsbDevice);
+					DeviceIO.CloseDevice(mUsbDevice);
 					Toast.makeText(MainActivity.this, "USB采集设备已拔出。", Toast.LENGTH_SHORT).show();
 				}
 			}
@@ -346,73 +346,8 @@ public class MainActivity extends Activity implements OnClickListener
 		}
 		return isSucceed;
 	}
+
 	
-	
-	/*// 建立连接
-		public boolean makeConnection(UsbDevice device)
-		{
-			boolean isConnected=false;
-			if (device == null)
-			{
-				Log.d(TAG, "Please insert USB flash disk!");
-				Toast.makeText(this, "Please insert USB flash disk!", Toast.LENGTH_SHORT).show();
-				return false;
-			}
-			// U盘接口个数为1
-			if (device.getInterfaceCount() != 1)
-			{
-				Log.d(TAG, "Not a USB flash disk!");
-				Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();
-				return false;
-			}
-
-			UsbInterface intf = device.getInterface(0);
-
-			// U盘接口0可获取的端点数为2
-			if (intf.getEndpointCount() != 2)
-			{
-				Log.d(TAG, "Not a USB flash disk!");
-				Toast.makeText(this, "Not a USB flash disk!", Toast.LENGTH_SHORT).show();
-				return false;
-			} else
-			{
-				mEndpointIn = intf.getEndpoint(0); // Bulk-In端点
-				mEndpointOut = intf.getEndpoint(1); // Bulk_Out端点
-				Log.d(TAG, "设备非空，获取到In以及OUT端点。");
-			}
-
-			if (device != null)
-			{
-				UsbDeviceConnection connection = mUsbManager.openDevice(device);
-				if (connection != null && connection.claimInterface(intf, true))
-				{
-					Log.d(TAG, "连接非空，Make connection succeeded!");
-					Toast.makeText(this, "Make connection succeeded!", Toast.LENGTH_SHORT).show();
-					mConnection = connection;
-					isConnected=true;
-				} else
-				{
-					Log.d(TAG, "Make connection failed!");
-					Toast.makeText(this, "Make connection failed!", Toast.LENGTH_SHORT).show();
-					mConnection = null;
-					return false;
-				}
-			}
-			return isConnected;
-		}*/
-
-	// 关闭连接，释放资源
-	void CloseConnection(UsbDevice device)
-	{
-		if ((this.mConnection != null) && (device != null))
-		{
-			this.mConnection.releaseInterface(device.getInterface(0));
-			this.mConnection.close();
-			this.mConnection = null;
-			Log.d(TAG, "关闭连接，释放资源");
-		}
-
-	}
 	
 	private void reset() 
 	{  

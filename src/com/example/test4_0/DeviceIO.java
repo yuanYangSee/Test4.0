@@ -17,15 +17,16 @@ public class DeviceIO
 	    boolean flag=Datas.makeConnection(mContext, mdevice);
 	    if (!flag)
 		{
-			Log.d("TAG", "Sorry, GetUsbEndpoints failed!!!");
+			Log.d(TAG, "Sorry, GetUsbEndpoints failed!!!");
 			return null;
 		}
-		Log.d("TAG", "GetUsbEndpoints Succeed!!!");
+		Log.d(TAG, "GetUsbEndpoints Succeed!!!");
 	    return mdevice;
 	  }
 	
 	public static void CloseDevice(UsbDevice device)
 	  {
+		Log.d(TAG, "CloseDevice");
 	    boolean isConnected = false;
 	    isConnected = Datas.CheckConnection(device);
 	    if (isConnected)
