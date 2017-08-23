@@ -51,7 +51,19 @@ public class DeviceIO
 		}
 		mToast.show();
 	}
-
+	
+	//¸´Î»
+	public static void DeviceReset(Context mContext)
+	{
+		try
+		{
+			Datas.reset(mContext);
+		} catch (Exception e)
+		{
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
 	
 	
 }

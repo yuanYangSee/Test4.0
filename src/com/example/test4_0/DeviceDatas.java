@@ -34,7 +34,8 @@ public class DeviceDatas
 		}
 
 	}
-
+	
+	//检查连接（也是保证已获取连接）
 	boolean CheckConnection(UsbDevice device)
 	{
 		Log.d(TAG, "CheckConnection");
@@ -88,11 +89,7 @@ public class DeviceDatas
 		return connection;
 	}
 
-
-	
-	
-
-	// 打开设备。获取端点。建立连接。
+	// 获取设备。
 	UsbDevice GetDevice(Context mContext, int VendorId, int ProductId)
 	{
 		UsbDevice mdevice = null;
@@ -177,5 +174,27 @@ public class DeviceDatas
 			}
 		}
 		return isConnected;
+	}
+	
+	//重置
+	public void reset(Context mContext)
+	{
+		synchronized (this)
+		{
+			if (mConnection != null)
+			{
+				// 复位命令的设置有USB Mass Storage的定义文档给出
+				int result = mConnection.controlTransfer(0x21, 0xFF, 0x00, 0x00, null, 0, 1000);
+				if (result < 0)
+				{ // result<0说明发送失败
+					Log.d(TAG, "Send reset command failed!");
+					DeviceIO.showToast(mContext, "复位失败", Toast.LENGTH_SHORT);
+				} else
+				{
+					Log.d(TAG, "Send reset command succeeded!");
+					DeviceIO.showToast(mContext, "复位成功", Toast.LENGTH_SHORT);
+				}
+			}
+		}
 	}
 }

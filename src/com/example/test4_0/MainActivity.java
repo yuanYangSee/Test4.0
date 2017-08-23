@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements OnClickListener
     private UsbDevice mUsbDevice;  
     private UsbEndpoint mEndpointIn;  
     private UsbEndpoint mEndpointOut;  
-    private UsbDeviceConnection mConnection = null; 
+   
     private PendingIntent mPermissionIntent;
     
     private boolean mSensorInited =false;
@@ -281,22 +281,11 @@ public class MainActivity extends Activity implements OnClickListener
 		case R.id.OpenDevice:
 			Log.d(TAG, "R.id.OpenDevice");
 			mSensorInited = InitUsbDevice(MainActivity.this,mVendorID, mProductID);
-			if (mSensorInited == true)
-			{
-				String str2 = mTvInfo.getText().toString();
-				str2 += "打开成功。\n";
-				mTvInfo.setText(str2);
-			}
-			else 
-			{
-				Log.d(TAG, "mSensorInited=false.打开失败。");
-			}
 			break;
-		case R.id.btn_reset:
-			reset();
-			break;
+		
+			
 		case R.id.button_down:
-		    Command_Down(19);
+		  //  Command_Down(19);
 			break;
 		case R.id.btn_get_max_lnu:
 			// getMaxLnu();
@@ -307,7 +296,11 @@ public class MainActivity extends Activity implements OnClickListener
 		case R.id.button_up:
 		//	Command_Up();
 			break;
-
+			
+			
+		case R.id.btn_reset:
+			DeviceIO.DeviceReset(MainActivity.this);
+			break;
 		default:
 			break;
 		}
@@ -348,7 +341,7 @@ public class MainActivity extends Activity implements OnClickListener
 
 	
 	
-	private void reset() 
+	/*private void reset() 
 	{  
 	    synchronized (this) {  
 	           if (mConnection != null) {  
@@ -366,9 +359,9 @@ public class MainActivity extends Activity implements OnClickListener
 	               mTvInfo.setText(str);  
 	           }  
 	       }  
-	}
+	}*/
 	
-	private void Command_Down(int j)
+	/*private void Command_Down(int j)
 	{
 		String str = mTvInfo.getText().toString();
 
@@ -415,7 +408,7 @@ public class MainActivity extends Activity implements OnClickListener
 		}
 		str += "\n";
 		mTvInfo.setText(str);
-	}
+	}*/
 }
 	
 	
