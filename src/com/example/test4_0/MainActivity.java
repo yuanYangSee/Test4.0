@@ -123,7 +123,7 @@ public class MainActivity extends Activity implements OnClickListener
 					mSensorInited = false;
 					// 关闭设备，释放资源
 					DeviceIO.CloseDevice(mUsbDevice);
-					Toast.makeText(MainActivity.this, "USB采集设备已拔出。", Toast.LENGTH_SHORT).show();
+					DeviceIO.showToast(MainActivity.this, "USB采集设备已拔出。",Toast.LENGTH_SHORT);
 				}
 			}
 		};
@@ -318,7 +318,6 @@ public class MainActivity extends Activity implements OnClickListener
 	private boolean InitUsbDevice (Context mContext,int vid, int pid)
 	{
 		boolean isSucceed = false;
-	//	mUsbDevice = OpenDevice(this, vid, pid);
 		mUsbDevice=DeviceIO.OpenDevice(mContext, vid, pid);
 		if(mUsbDevice==null)
 		{
