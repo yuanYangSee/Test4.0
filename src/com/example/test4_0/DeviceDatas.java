@@ -1,5 +1,7 @@
 package com.example.test4_0;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -195,6 +197,166 @@ public class DeviceDatas
 					DeviceIO.showToast(mContext, "复位成功", Toast.LENGTH_SHORT);
 				}
 			}
+			else 
+			{
+				Log.d(TAG, "mConnection");
+			}
+			
 		}
 	}
+	
+	// 获取逻辑单元数
+	public byte getMaxLnu()
+	{
+		byte i=0;
+		synchronized (this)
+		{
+			if (mConnection != null)
+			{
+				// 接收的数据只有1个字节
+				byte[] message = new byte[1];
+				// 获取最大LUN命令的设置由USB Mass Storage的定义文档给出
+				int result = mConnection.controlTransfer(0xA1, 0xFE, 0x00, 0x00, message, 1, 1000);
+				if (result < 0)
+				{
+					Log.d(TAG, "Get max lnu failed!");
+				} else
+				{
+					Log.d(TAG, "Get max lnu succeeded!");
+					i=message[0] ;
+				}
+			}
+		}
+		return i;
+	}
+	
+	//机器校验
+	int UDiskVerfiy()
+	{
+		
+		ByteBuffer buffer = ByteBuffer.allocate(65536);
+
+		Byte cmd[] ={ 0x13, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+		if (UDiskDownData(cmd, 1000)!=0)
+		{
+			return -101;
+		}
+		return 0;
+	}
+
+	private int UDiskDownData(Byte[] cmd , int nTimeOut)
+	{
+		int ret = -1;
+		int i = 0;
+		byte[] di_CSW = new byte[13];
+		
+		byte[] do_CBW = new byte[]
+				{	    (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3
+						(byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 4~7自定义,与返回的CSW中的值是一样的
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 8~11传输数据长度为512字节
+						(byte) 0x00, 										// (12th 0x00-out)
+						(byte) 0x00, 										// 13th LNU为0,则设为0
+						(byte) 0x06, 										// 14th	命令长度 command length
+						(byte) cmd[0], (byte) cmd[1], (byte) cmd[2], (byte)cmd[3], // READ	FORMAT CAPACITIES,后面的0x00皆被忽略
+						(byte) cmd[4], (byte) cmd[5], (byte) 0x00, (byte) 0x00,	//				
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
+
+		if ((this.mEndpointOut != null) && (this.mConnection != null))
+		{
+			ret = this.mConnection.bulkTransfer(this.mEndpointOut, do_CBW, 31, nTimeOut);
+		}
+
+		if (ret != 31)
+		{
+			Log.e(TAG, "1...UDiskDownData DO_CBW fail!\n");
+			return -301;
+		}
+
+		if ((this.mEndpointIn != null) && (this.mConnection != null))
+		{
+			ret = this.mConnection.bulkTransfer(this.mEndpointIn, di_CSW, 13, nTimeOut);
+		} 
+
+		if ((di_CSW[3] != 83) || (di_CSW[12] != 0))
+		{
+			Log.e(TAG, "2...UDiskDownData DI_CSW fail!\n");
+			return -303;
+		}
+		for (i = 4; i < 8; i++)
+		{
+			if (di_CSW[i] == do_CBW[i])
+				continue;
+			Log.e("AS60xDatas", "4...UDiskDownData DI_CSW fail!\n");
+			return -303;
+		}
+		
+		Log.d(TAG, "2 UDiskDownData="+Arrays.toString(di_CSW));
+		return 0;
+	}
+	
+	
+
+	private int UDiskGetData(Byte[] cmd, int img_Len, ByteBuffer img,  int nTimeOut )
+	{
+		int ret = -1;
+		int i = 0;
+		byte[] recvbuffer = new byte[65536];//64K
+		byte[] di_CSW = new byte[13];
+		
+		byte[] do_CBW = new byte[]
+				{	    (byte) 0x55, (byte) 0x53, (byte) 0x42, (byte) 0x43, // 固定值 0~3
+						(byte) 0x28, (byte) 0xe8, (byte) 0x3e, (byte) 0xfe, // 4~7自定义,与返回的CSW中的值是一样的
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, // 8~11传输数据长度为512字节
+						(byte) 0x80, 										// (12th 0x80-in)
+						(byte) 0x00, 										// 13th LNU为0,则设为0
+						(byte) 0x06, 										// 14th	命令长度 command length
+						(byte) cmd[0], (byte) cmd[1], (byte) cmd[2], (byte)cmd[3], // READ	FORMAT CAPACITIES,后面的0x00皆被忽略
+						(byte) cmd[4], (byte) cmd[5], (byte) 0x00, (byte) 0x00,	//				
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
+						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
+
+		do_CBW[8] = (byte) (img_Len & 0xFF);
+		do_CBW[9] = (byte) (img_Len >> 8 & 0xFF);
+		do_CBW[10] = (byte) (img_Len >> 16 & 0xFF);
+		do_CBW[11] = (byte) (img_Len >> 24 & 0xFF);
+		ret = mConnection.bulkTransfer(mEndpointOut, do_CBW, do_CBW.length, nTimeOut);
+		if (ret != 31)
+	    {
+	      Log.e(TAG, "1...UDiskGetData DO_CBW fail!\n");
+	      return -311;
+	    }
+		
+		if ((this.mEndpointIn != null) && (this.mConnection != null))
+		{
+			ret = this.mConnection.bulkTransfer(this.mEndpointIn, recvbuffer, recvbuffer.length, nTimeOut);
+		}
+		if (ret != recvbuffer.length)
+		{
+			Log.e(TAG, "2...UDiskGetData DI_DATA fail! ret=" + ret);
+			return -312;
+		}
+		img.put(recvbuffer, 0, recvbuffer.length);
+		
+		if ((this.mEndpointIn != null) && (this.mConnection != null))
+		{
+			ret = this.mConnection.bulkTransfer(this.mEndpointIn, di_CSW, 13, nTimeOut);
+		} 
+
+		if ((di_CSW[3] != 83) || (di_CSW[12] != 0))
+		{
+			Log.e(TAG, "2...UDiskDownData DI_CSW fail!\n");
+			return -303;
+		}
+		for (i = 4; i < 8; i++)
+		{
+			if (di_CSW[i] == do_CBW[i])
+				continue;
+			Log.e(TAG, "4...UDiskDownData DI_CSW fail!\n");
+			return -303;
+		}
+		return 0;
+	}
+	
 }

@@ -9,54 +9,59 @@
     tools:context="com.example.test4_0.MainActivity" >
 
     <Button
+        android:id="@+id/btn_open_device"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:text="Open" />
+    
+    <Button
         android:id="@+id/btn_reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@id/btn_open_device"
         android:text="reset" />
+    
+     <Button
+        android:id="@+id/btn_get_max_lnu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+       	android:layout_alignParentTop="true"
+       	android:layout_alignParentRight="true"
+        android:text="GetMaxLnu" />
+     
+     <Button
+        android:id="@+id/btn_verify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_open_device"
+        android:layout_alignParentLeft="true"
+        android:text="握手" />
+
+    <Button
+        android:id="@+id/btn_data_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_open_device"
+        android:layout_toRightOf="@id/btn_verify"
+        android:text="DataUp" />
+    
+
+    
+
+    
+
+   
 
     <TextView
         android:id="@+id/ReturnData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/btn_verify"
+        android:layout_marginTop="51dp"
         android:scrollbars="vertical"
-        android:layout_below="@+id/btn_reset"
-        android:layout_marginTop="132dp"
         android:text="ReturnData:" />
-
-    <Button
-        android:id="@+id/button_down"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_reset"
-        android:layout_marginTop="25dp"
-        android:text="DataDown" />
-
-    <Button
-        android:id="@+id/button_up"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/button_down"
-        android:layout_alignBottom="@+id/button_down"
-        android:layout_toRightOf="@+id/button_down"
-        android:text="DataUp" />
-
-    <Button
-        android:id="@+id/OpenDevice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/btn_reset"
-        android:layout_alignBottom="@+id/btn_reset"
-        android:layout_toRightOf="@+id/btn_reset"
-        android:text="Init" />
-
-    <Button
-        android:id="@+id/btn_get_max_lnu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/ReturnData"
-        android:layout_toRightOf="@+id/OpenDevice"
-        android:text="GetMaxLnu" />
     
 </RelativeLayout>

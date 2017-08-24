@@ -57,12 +57,34 @@ public class DeviceIO
 	{
 		try
 		{
+			Log.d(TAG, "DeviceReset");
 			Datas.reset(mContext);
 		} catch (Exception e)
 		{
 			// TODO: handle exception
 			e.printStackTrace();
 		}
+	}
+	
+	//获取逻辑单元数
+	public static int getMaxLnu()
+	{
+		int number=Datas.getMaxLnu();
+		return number;
+	}
+	
+	//核验设备
+	public static int HS_Verfiy(UsbDevice device)
+	{
+		int nRet = -1;
+		boolean isConnected = false;
+		isConnected = Datas.CheckConnection(device);
+		if (isConnected)
+		{
+			nRet = Datas.UDiskVerfiy();
+			Log.d(TAG, "UDiskVerfiy return="+nRet);
+		}
+		return nRet;
 	}
 	
 	

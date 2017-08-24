@@ -29,18 +29,16 @@ public class MainActivity extends Activity implements OnClickListener
 	private static final String ACTION_USB_PERMISSION =  
             "com.android.example.USB_PERMISSION";  
       
-    private Button mBtnReset;  
-    private Button mBtnGetMaxLnu;  
-    private Button mBtnOpenDevice;  
-    private Button mButtonDown;
-    private Button mButtonUp;
+    private Button btn_reset;  
+    private Button btn_get_max_lnu;  
+    private Button btn_open_device;  
+    private Button btn_verify;
+    private Button btn_data_up;
     private TextView mTvInfo;  
   
     private UsbManager mUsbManager;  
     private UsbDevice mUsbDevice;  
-    private UsbEndpoint mEndpointIn;  
-    private UsbEndpoint mEndpointOut;  
-   
+
     private PendingIntent mPermissionIntent;
     
     private boolean mSensorInited =false;
@@ -64,20 +62,18 @@ public class MainActivity extends Activity implements OnClickListener
 	//加载界面
 		private void setViewContent()
 		{
-			 mBtnReset = (Button)findViewById(R.id.btn_reset);  
-		     mBtnGetMaxLnu = (Button)findViewById(R.id.btn_get_max_lnu);  
-		     mBtnOpenDevice = (Button)findViewById(R.id.OpenDevice); 
-		     mButtonDown=(Button)findViewById(R.id.button_down);
-		     mButtonUp=(Button)findViewById(R.id.button_up);
+			 btn_reset = (Button)findViewById(R.id.btn_reset);  
+		     btn_get_max_lnu = (Button)findViewById(R.id.btn_get_max_lnu);  
+		     btn_open_device = (Button)findViewById(R.id.btn_open_device); 
+		     btn_verify=(Button)findViewById(R.id.btn_verify);
 		     
 		     mTvInfo = (TextView)findViewById(R.id.ReturnData);  
 		     mTvInfo.setMovementMethod(ScrollingMovementMethod.getInstance());
 		          
-		     mBtnReset.setOnClickListener(this);  
-		     mBtnGetMaxLnu.setOnClickListener(this);  
-		     mBtnOpenDevice.setOnClickListener(this);  
-		     mButtonDown.setOnClickListener(this);
-		     mButtonUp.setOnClickListener(this);
+		     btn_reset.setOnClickListener(this);  
+		     btn_get_max_lnu.setOnClickListener(this);  
+		     btn_open_device.setOnClickListener(this);  
+		     btn_verify.setOnClickListener(this);
 		          
 		     mUsbManager = (UsbManager)getSystemService(Context.USB_SERVICE);  
 		}
@@ -136,30 +132,7 @@ public class MainActivity extends Activity implements OnClickListener
 	
 	
 	
-	private void getMaxLnu() {  
-	    synchronized (this) {  
-	           if (mConnection != null) {  
-	            String str = mTvInfo.getText().toString();  
-	              
-	            // 接收的数据只有1个字节  
-	            byte[] message = new byte[1];  
-	            // 获取最大LUN命令的设置由USB Mass Storage的定义文档给出  
-	               int result = mConnection.controlTransfer(0xA1, 0xFE, 0x00, 0x00, message, 1, 1000);  
-	               if(result < 0) {  
-	                Log.d(TAG,  "Get max lnu failed!");  
-	                str += "Get max lnu failed!\n";  
-	            } else {  
-	                Log.d(TAG, "Get max lnu succeeded!");                     
-	                str += "Get max lnu succeeded!\nMax LNU : ";  
-	                for(int i=0; i<message.length; i++) {  
-	                    str += Integer.toString(message[i]&0x00FF);  
-	                }  
-	            }  
-	               str += "\n";  
-	               mTvInfo.setText(str);  
-	           }  
-	       }  
-	}  
+	
 	
 	private void sendCommand() {  
 	    String str = mTvInfo.getText().toString();  
@@ -217,7 +190,7 @@ public class MainActivity extends Activity implements OnClickListener
 	
 	
 
-	private void Command_Up() {  
+	private void Verify() {  
 	    String str = mTvInfo.getText().toString();  
 	      
 	    byte[] cmd = new byte[] {  
@@ -278,27 +251,34 @@ public class MainActivity extends Activity implements OnClickListener
 		// TODO Auto-generated method stub
 		switch (v.getId())
 		{
-		case R.id.OpenDevice:
+		case R.id.btn_open_device:
 			Log.d(TAG, "R.id.OpenDevice");
 			mSensorInited = InitUsbDevice(MainActivity.this,mVendorID, mProductID);
 			break;
+			
+		case R.id.btn_verify:
+			Log.d(TAG, "R.id.btn_verify");
+			int nRet = DeviceIO.HS_Verfiy(mUsbDevice);
+			if (0 == nRet)
+			{
+				DeviceIO.showToast(MainActivity.this, "核验成功。", Toast.LENGTH_SHORT);
+			}
+			else 
+			{
+				DeviceIO.showToast(MainActivity.this, "核验失败。", Toast.LENGTH_SHORT);
+			}
+			break;
 		
 			
-		case R.id.button_down:
-		  //  Command_Down(19);
-			break;
 		case R.id.btn_get_max_lnu:
-			// getMaxLnu();
+			int number=DeviceIO.getMaxLnu();
 			String str1 = mTvInfo.getText().toString();
-			str1 += "get_max_lun。\n";
+			str1 += "\nget_max_lun:"+Integer.toString(number);
 			mTvInfo.setText(str1);
-			break;
-		case R.id.button_up:
-		//	Command_Up();
-			break;
-			
+			break;	
 			
 		case R.id.btn_reset:
+			Log.d(TAG, "R.id.btn_reset");
 			DeviceIO.DeviceReset(MainActivity.this);
 			break;
 		default:
@@ -341,25 +321,6 @@ public class MainActivity extends Activity implements OnClickListener
 
 	
 	
-	/*private void reset() 
-	{  
-	    synchronized (this) {  
-	           if (mConnection != null) {  
-	            String str = mTvInfo.getText().toString();  
-	              
-	            // 复位命令的设置有USB Mass Storage的定义文档给出  
-	            int result = mConnection.controlTransfer(0x21, 0xFF, 0x00, 0x00, null, 0, 1000);  
-	               if(result < 0) {                      // result<0说明发送失败  
-	                Log.d(TAG, "Send reset command failed!");  
-	                str += "Send reset command failed!\n";  
-	            } else {   
-	                Log.d(TAG, "Send reset command succeeded!");  
-	                str += "Send reset command succeeded!\n";  
-	            }         
-	               mTvInfo.setText(str);  
-	           }  
-	       }  
-	}*/
 	
 	/*private void Command_Down(int j)
 	{
