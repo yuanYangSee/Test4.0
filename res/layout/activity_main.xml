@@ -45,7 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_open_device"
         android:layout_toRightOf="@id/btn_verify"
-        android:text="DataUp" />
+        android:text="测试" />
     
 
     
@@ -59,9 +59,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/btn_verify"
+        android:layout_below="@id/btn_verify"
         android:layout_marginTop="51dp"
         android:scrollbars="vertical"
         android:text="ReturnData:" />
+
+    <Button
+        android:id="@+id/test2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_open_device"
+        android:layout_toRightOf="@id/btn_data_up"
+        android:text="测试2" />
     
 </RelativeLayout>

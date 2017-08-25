@@ -1,5 +1,7 @@
 package com.example.test4_0;
 
+import java.nio.ByteBuffer;
+
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.util.Log;
@@ -83,6 +85,37 @@ public class DeviceIO
 		{
 			nRet = Datas.UDiskVerfiy();
 			Log.d(TAG, "UDiskVerfiy return="+nRet);
+		}
+		return nRet;
+	}
+	
+	// 上传图像
+	public static int UpImage(UsbDevice device, byte[] pImageData, int iImageLength)
+	{
+		int nRet = -1;
+		boolean isConnected = false;
+		isConnected = Datas.CheckConnection(device);
+		if (isConnected)
+		{
+			// ByteBuffer Buffer = ByteBuffer.allocate(92160);
+			
+			//实际数据
+			ByteBuffer Buffer = ByteBuffer.allocate(16384);//先用65536测试	64K
+			nRet = Datas.UdiskUpImage(Buffer, Buffer.capacity());
+			if (nRet == 0)//重点
+			{	
+				//复制给65536
+				System.arraycopy(Buffer.array(), 0, pImageData, 0, 36);
+			} else
+			{
+				Log.e("AS60xIO", "UdiskUpImage error： nRet=" + nRet);
+			}
+			Buffer.clear();
+
+		} else
+		{
+			nRet = -3;
+			Log.e(TAG, "CheckConnection error： nRet=" + nRet);
 		}
 		return nRet;
 	}

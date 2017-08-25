@@ -298,11 +298,13 @@ public class DeviceDatas
 	
 	
 
-	private int UDiskGetData(Byte[] cmd, int img_Len, ByteBuffer img,  int nTimeOut )
+	private int UDiskGetData(byte[] upImgCmd,  ByteBuffer img, int img_Len, int nTimeOut )
 	{
+		Log.d(TAG, "UDiskGetData()"); 
 		int ret = -1;
 		int i = 0;
-		byte[] recvbuffer = new byte[65536];//64K
+		//byte[] recvbuffer = new byte[65536];//64K
+		byte[] recvbuffer = new byte[36];
 		byte[] di_CSW = new byte[13];
 		
 		byte[] do_CBW = new byte[]
@@ -312,8 +314,8 @@ public class DeviceDatas
 						(byte) 0x80, 										// (12th 0x80-in)
 						(byte) 0x00, 										// 13th LNU为0,则设为0
 						(byte) 0x06, 										// 14th	命令长度 command length
-						(byte) cmd[0], (byte) cmd[1], (byte) cmd[2], (byte)cmd[3], // READ	FORMAT CAPACITIES,后面的0x00皆被忽略
-						(byte) cmd[4], (byte) cmd[5], (byte) 0x00, (byte) 0x00,	//				
+						(byte) upImgCmd[0], (byte) upImgCmd[1], (byte) upImgCmd[2], (byte)upImgCmd[3], // READ	FORMAT CAPACITIES,后面的0x00皆被忽略
+						(byte) upImgCmd[4], (byte) upImgCmd[5], (byte) 0x00, (byte) 0x00,	//				
 						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, 
 						(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
@@ -330,13 +332,11 @@ public class DeviceDatas
 		
 		if ((this.mEndpointIn != null) && (this.mConnection != null))
 		{
-			ret = this.mConnection.bulkTransfer(this.mEndpointIn, recvbuffer, recvbuffer.length, nTimeOut);
+			ret = this.mConnection.bulkTransfer(this.mEndpointIn, recvbuffer, 36, nTimeOut);
+		//	ret = this.mConnection.bulkTransfer(this.mEndpointIn, recvbuffer, recvbuffer.length, nTimeOut);
 		}
-		if (ret != recvbuffer.length)
-		{
-			Log.e(TAG, "2...UDiskGetData DI_DATA fail! ret=" + ret);
-			return -312;
-		}
+		Log.e(TAG, "mEndpointIn ret=" + ret);
+		
 		img.put(recvbuffer, 0, recvbuffer.length);
 		
 		if ((this.mEndpointIn != null) && (this.mConnection != null))
@@ -358,5 +358,23 @@ public class DeviceDatas
 		}
 		return 0;
 	}
+	
+	//上传图像
+	int UdiskUpImage(ByteBuffer Buff, int Buff_length)
+	  {
+		Log.d(TAG, "UdiskUpImage()."); 
+	    byte[] upImgCmd = { 0x01, 0x01, 0x00, 0x00, 0x24, 0x00}; 
+
+	    Buff.clear();
+
+	    int result = UDiskGetData(upImgCmd,Buff,Buff_length, 1000);
+	    Log.d(TAG, "UDiskGetData result="+result); 
+	    if (result != 0)
+	    {
+	      return -101;
+	    }
+	    Buff.flip();
+	    return result;
+	  }
 	
 }
